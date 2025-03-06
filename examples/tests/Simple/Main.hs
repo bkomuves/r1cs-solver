@@ -6,7 +6,7 @@ module Simple.Main where
 
 --------------------------------------------------------------------------------
 
-import R1CS.Misc ( Verbosity(..) )
+import R1CS -- ( Verbosity(..) , FieldChoice(..) )
 
 import qualified R1CS.Test.Spec as Spec
 
@@ -19,13 +19,13 @@ import qualified Simple.Misc.RightShift  as RightShift
 --------------------------------------------------------------------------------
 
 testSimple :: IO ()
-testSimple = testSimple' Silent
+testSimple = testSimple' Field20 Silent
 
-testSimple' :: Verbosity -> IO ()
-testSimple' verbosity = do
+testSimple' :: FieldChoice -> Verbosity -> IO ()
+testSimple' fld verbosity = runWithField fld $ \pxy -> do
 
-  let runSpec     what = Spec.testSemantics     what verbosity
-  let runSpecMany what = Spec.testSemanticsMany what verbosity
+  let runSpec     what = Spec.testSemantics     pxy what verbosity
+  let runSpecMany what = Spec.testSemanticsMany pxy what verbosity
 
   runSpec     IsBoolean.spec                     
   runSpec     SumOfCubes.spec       
@@ -33,7 +33,7 @@ testSimple' verbosity = do
   runSpecMany Fibonacci.specs
 
   -- the unsound example:
-  Spec.testSemantics RightShift.spec (max Info verbosity)
-  RightShift.testHonestProver verbosity
+  Spec.testSemantics pxy RightShift.spec (max Info verbosity)
+  RightShift.testHonestProver fld verbosity
 
 --------------------------------------------------------------------------------

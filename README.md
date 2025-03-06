@@ -2,7 +2,7 @@
 R1CS solver
 ===========
 
-`r1cs-solver`, copyright 2023 Faulhorn Labs.
+`r1cs-solver`, copyright 2023-2025 Faulhorn Labs.
 
 What is this?
 -------------
@@ -72,5 +72,18 @@ output matches the desired semantics in _all solutions_.
 This can provide a much higher confidence in the soundness of the code than some
 other testing methods, because we are actually testing the _whole witness space_,
 by reducing it to a managable set using algebraic manipulation.
+
+Test fields
+-----------
+
+As the equation solving requires a lot of square root operations, which can be
+quite slow, for now we only support small "test fields" of size 16, 20 and 24
+bits. These are small enough that a square root table can be precomputed.
+
+It also simplifies the implementation not having to deal with large fields.
+
+Obviously, this limits the set of circuits to be tested to those which are
+field-agnostic and work properly in these small fields.
+
 
 

@@ -24,6 +24,7 @@ import R1CS.Witness
 import R1CS.Compile
 import R1CS.Test.Runner
 import R1CS.Misc
+import R1CS.Algebra.Fields
 
 --------------------------------------------------------------------------------
 
@@ -52,16 +53,18 @@ data TestSpec testcase output = TestSpec
 --------------------------------------------------------------------------------
 
 -- | Run the semantics tests for a given specifications
-testSemantics :: Show testcase => TestSpec testcase output -> Verbosity -> IO ()
-testSemantics (TestSpec{..}) verbosity = do
+testSemantics 
+  :: (Field f, Show testcase) => Proxy f 
+  -> TestSpec testcase output -> Verbosity -> IO ()
+testSemantics pxy (TestSpec{..}) verbosity = do
   putStrLn $ "\ntesting template `" ++ (_templateName mainComponent) ++ "` from `" ++ circomFile ++ "`"
   -- compile the circuit using circom
   circuitFiles <- compileCircomCircuit verbosity circomFile (Just mainComponent)
   -- load the JSON + SYM files
-  circuit <- loadCircuit verbosity circuitFiles
+  circuit <- loadCircuit pxy verbosity circuitFiles
   -- run the tests
   let mkInOutPair = \testcase -> (inputs testcase, fmap outputs (semantics testcase))
-  ok <- runSemanticTests verbosity circuit mkInOutPair testCases
+  ok <- runSemanticTests pxy verbosity circuit mkInOutPair testCases
   putStrLn $ if ok then "OK" else "PROBLEMS"
 
 --------------------------------------------------------------------------------
@@ -69,18 +72,20 @@ testSemantics (TestSpec{..}) verbosity = do
 -- | Run the semantics tests for multiple specifications. This is useful for example
 -- when you have a template with parameters, and you want to test for multiple parameter settings.
 --
-testSemanticsMany :: (Show gp, Show testcase) => [ (gp , TestSpec testcase output) ] -> Verbosity -> IO ()
-testSemanticsMany specList verbosity = do
+testSemanticsMany 
+  :: (Field field, Show gp, Show testcase) => Proxy field
+  -> [ (gp , TestSpec testcase output) ] -> Verbosity -> IO ()
+testSemanticsMany pxy specList verbosity = do
   forM_ specList $ \(gp, TestSpec{..}) -> do
     putStrLn $ "\ntesting template `" ++ (_templateName mainComponent) ++ "` from `" ++ circomFile ++ "` " ++
                "with global parameter = " ++ show gp
     -- (re)compile the circuit using circom with the given global parameters
     circuitFiles <- compileCircomCircuit verbosity circomFile (Just mainComponent)
     -- load the JSON + SYM files
-    circuit <- loadCircuit verbosity circuitFiles
+    circuit <- loadCircuit pxy verbosity circuitFiles
     -- run the tests
     let mkInOutPair = \testcase -> (inputs testcase, fmap outputs (semantics testcase))
-    ok <- runSemanticTests verbosity circuit mkInOutPair testCases
+    ok <- runSemanticTests pxy verbosity circuit mkInOutPair testCases
     putStrLn $ if ok then "OK" else "PROBLEMS"
 
 --------------------------------------------------------------------------------

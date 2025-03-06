@@ -1,6 +1,7 @@
 
 -- | R1CS constraints
 
+{-# LANGUAGE ScopedTypeVariables #-}
 module R1CS.Constraints where
 
 --------------------------------------------------------------------------------
@@ -8,29 +9,28 @@ module R1CS.Constraints where
 import Data.List
 import Data.Maybe
 import Data.Ratio
+import Data.Proxy
 
 import Control.Monad
 
 import Data.Set (Set) ; import qualified Data.Set as Set
 import Data.Map (Map) ; import qualified Data.Map as Map
 
-import R1CS.Algebra.TestField (F16, unF16, fieldPrime)
+import R1CS.Algebra.Fields
 import R1CS.Misc
 
 --------------------------------------------------------------------------------
 -- * Our \"test\" field
 
-toField :: Rational -> Field
+toField :: Field f => Rational -> f
 toField = fromRational
 
-toField_ :: Integer -> Field
+toField_ :: Field f => Integer -> f
 toField_ = fromInteger
 
-toFieldConstraints :: Constraints var Rational -> Constraints var Field
-toFieldConstraints (Constraints _ list) = Constraints (fromIntegral fieldPrime)
+toFieldConstraints :: forall var f. Field f => Constraints var Rational -> Constraints var f
+toFieldConstraints (Constraints _ list) = Constraints (fieldPrime (Proxy @f))
   (map (r1csMapCoeff toField) list)
-
-type Field = F16
 
 --------------------------------------------------------------------------------
 -- * R1CS constraints
@@ -78,12 +78,16 @@ linCombIsConst' (LinComb' c table) = if all (==0) (Map.elems table)
   then Just c
   else Nothing
 
--- | Enforce the inveriant
-{-# SPECIALIZE normalizeLinComb' :: LinComb' VarIdx Field -> LinComb' VarIdx Field #-}
+-- | Enforce the invariant
+{-# SPECIALIZE normalizeLinComb' :: LinComb' VarIdx F16 -> LinComb' VarIdx F16 #-}
+{-# SPECIALIZE normalizeLinComb' :: LinComb' VarIdx F20 -> LinComb' VarIdx F20 #-}
+{-# SPECIALIZE normalizeLinComb' :: LinComb' VarIdx F24 -> LinComb' VarIdx F24 #-}
 normalizeLinComb' :: (Ord var, Eq coeff, Num coeff) => LinComb' var coeff -> LinComb' var coeff 
 normalizeLinComb' (LinComb' c table) = LinComb' c (Map.filter (/=0) table)
 
-{-# SPECIALIZE linCombIsZero' :: LinComb' VarIdx Field -> Bool #-}
+{-# SPECIALIZE linCombIsZero' :: LinComb' VarIdx F16 -> Bool #-}
+{-# SPECIALIZE linCombIsZero' :: LinComb' VarIdx F20 -> Bool #-}
+{-# SPECIALIZE linCombIsZero' :: LinComb' VarIdx F24 -> Bool #-}
 linCombIsZero' :: (Num coeff, Eq coeff) => LinComb' var coeff -> Bool
 linCombIsZero' (LinComb' c table) = (c==0) && all (==0) (Map.elems table)
 
@@ -266,7 +270,7 @@ convertField1 origPrime k
 
 convertField :: Prime -> Integer -> Rational
 convertField origPrime k = 
-  case catMaybes [ liftM (%d) (convertField1 origPrime (mod (k*d) origPrime)) | d <- [1..maxDenom] ] of
+  case catMaybes [ liftM (% d) (convertField1 origPrime (mod (k*d) origPrime)) | d <- [1..maxDenom] ] of
     []    -> error $ "convertField: cannot convert field element to the small field:\n  -> " ++ show k
     (r:_) -> r
   where
@@ -317,7 +321,7 @@ mkSymbolicPrinter showCoeff (SymbolTable nameTable idxTable) = Printer showVar s
 symbolicRatPrinter :: SymbolTable -> Printer VarIdx Rational
 symbolicRatPrinter sym = mkSymbolicPrinter prettyRational sym
 
-symbolicFieldPrinter :: SymbolTable -> Printer VarIdx Field
+symbolicFieldPrinter :: Field f => SymbolTable -> Printer VarIdx f
 symbolicFieldPrinter sym = mkSymbolicPrinter prettyField sym
 
 prettyVarIdx :: VarIdx -> String
@@ -338,8 +342,8 @@ prettyRational r =
     a = numerator   r
     b = denominator r
 
-prettyField :: Field -> String
-prettyField = show . unF16
+prettyField :: Field f => f -> String
+prettyField = show . fromF
 
 ----------------------------------------
 

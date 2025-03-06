@@ -24,6 +24,8 @@ import R1CS.Parser.Constraint.JSON ( parseJsonFile     )
 import R1CS.Parser.SymFile         ( parseSymFile      )
 import R1CS.Parser.WtnsJSON        ( parseWtnsJsonFile )
 
+import R1CS.Algebra.Fields
+
 --------------------------------------------------------------------------------
 
 data Expected a
@@ -147,13 +149,14 @@ type MkInOutPair testcase
       ))
 
 runSemanticTests
-  :: Show testcase 
-  => Verbosity 
-  -> SymConstraints Field 
+  :: (Show testcase, Field field) 
+  => Proxy field
+  -> Verbosity 
+  -> SymConstraints field 
   -> MkInOutPair testcase
   -> [testcase] 
   -> IO Bool
-runSemanticTests verbosity symConstr makeInputOutputPair testcases = do
+runSemanticTests pxy verbosity symConstr makeInputOutputPair testcases = do
 
   let ntests = length testcases
 
@@ -162,7 +165,7 @@ runSemanticTests verbosity symConstr makeInputOutputPair testcases = do
     let (inputs,expected_) = makeInputOutputPair testcase
     let expected = fmap (mapCoeff fromInteger) expected_
     let ini = fromMapping (fromInputs inputs)
-    sols <- solver verbosity symConstr (Map.map fromInteger ini)
+    sols <- solver pxy verbosity symConstr (Map.map fromInteger ini)
     let n = length sols
     when (verbosity >= Info) $ when (n > 1) $ putStr ("warning: multiple witness solutions! n = " ++ show n ++ "... ")
     let res = analyzeSolutionSet expected sols
@@ -182,17 +185,17 @@ runSemanticTests verbosity symConstr makeInputOutputPair testcases = do
 
 --------------------------------------------------------------------------------
 
-runExample :: Verbosity -> CircuitFiles -> Inputs Name Integer -> IO [Solution Name Field]
-runExample verbosity circuitFiles inputs = do
-  symConstr <- loadCircuit verbosity circuitFiles 
+runExample :: Field field => Proxy field -> Verbosity -> CircuitFiles -> Inputs Name Integer -> IO [Solution Name field]
+runExample pxy verbosity circuitFiles inputs = do
+  symConstr <- loadCircuit pxy verbosity circuitFiles 
   let ini = fromMapping (fromInputs inputs)
-  sols <- solver verbosity symConstr (Map.map fromInteger ini)
+  sols <- solver pxy verbosity symConstr (Map.map fromInteger ini)
   return sols
 
 --------------------------------------------------------------------------------
 
-loadCircuit :: Verbosity -> CircuitFiles -> IO (SymConstraints Field)
-loadCircuit verbosity circuitFiles = do
+loadCircuit :: Field field => Proxy field -> Verbosity -> CircuitFiles -> IO (SymConstraints field)
+loadCircuit pxy verbosity circuitFiles = do
 
   constr0 <- parseJsonFile (_jsonFile circuitFiles)
   sym0    <- parseSymFile  (_symFile  circuitFiles) 
@@ -204,15 +207,15 @@ loadCircuit verbosity circuitFiles = do
     printSymbolTable sym
     printConstraints (symbolicRatPrinter sym) constr
 
-  let constr65537 = replacePrime 65537 $ constraintsMapCoeff toField constr
-  let symConstr   = SymConstraints constr65537 sym
+  let constr_modp = replacePrime (fieldPrime pxy) $ constraintsMapCoeff toField constr
+  let symConstr   = SymConstraints constr_modp sym
 
   return symConstr
 
 --------------------------------------------------------------------------------
 
-loadWitness :: Verbosity -> CircuitFiles -> WitnessFiles -> IO (Witness Name Field)
-loadWitness verbosity circuitfiles witnessfiles = do
+loadWitness :: Field field => Proxy field -> Verbosity -> CircuitFiles -> WitnessFiles -> IO (Witness Name field)
+loadWitness pxy verbosity circuitfiles witnessfiles = do
   sym0  <- parseSymFile  (_symFile circuitfiles) 
   mapCoeff toField_ <$> loadWitness' sym0 witnessfiles
 

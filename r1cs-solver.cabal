@@ -61,7 +61,11 @@ Library
                         R1CS.Parser.Constraint.JSON
                         R1CS.Parser.Constraint.Text
                         R1CS.Parser.WtnsJSON
-                        R1CS.Algebra.TestField
+                        R1CS.Algebra.Class
+                        R1CS.Algebra.Fields
+                        R1CS.Algebra.TestField16
+                        R1CS.Algebra.TestField20
+                        R1CS.Algebra.TestField24
                         R1CS.Params
                         R1CS.Misc
 

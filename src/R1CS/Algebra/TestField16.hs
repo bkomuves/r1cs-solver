@@ -1,7 +1,7 @@
 
--- | The prime field with prime @p = 65537@
+-- | The prime field with prime @p = 2^16 + 1 = 65537@
 
- module R1CS.Algebra.TestField where
+ module R1CS.Algebra.TestField16 where
 
 --------------------------------------------------------------------------------
 
@@ -14,41 +14,43 @@ import Data.Array
 
 import R1CS.Algebra.SmallField
 import qualified R1CS.Algebra.SmallField as Raw
+import R1CS.Algebra.Class
 
 --------------------------------------------------------------------------------
 
-fieldPrime :: Int
-fieldPrime = 65537
+instance Field F16 where
+  fieldName  _ = "F16"
+  fieldPrime _ = fromIntegral fieldPrimeF16
+  showF      =show . unF16
+  pow        = powF16_
+  power      = powF16
+  isZero     = isZeroF16
+  fieldSqrt1 = fieldSqrtF16
+  toF        = \x -> F16 (fromInteger $ mod x 65537)
+  fromF      = fromIntegral . unF16
+
+instance SmallField F16 where
+  toF_   = toF16
+  fromF_ = unF16
+
+{-# SPECIALISE fieldSqrt :: F16-> Sqrt F16 #-}
+
+--------------------------------------------------------------------------------
+
+fieldPrimeF16 :: Int
+fieldPrimeF16 = 65537
 
 sqrtTable :: Array Word64 (Maybe F16)
-sqrtTable = accumArray (flip const) Nothing (0,fromIntegral fieldPrime - 1) 
-  [ (unF16 (x*x), Just x) | k<-[0..fieldPrime-1], let x = F16 (fromIntegral k) ]
+sqrtTable = accumArray (flip const) Nothing (0,fromIntegral fieldPrimeF16 - 1) 
+  [ (unF16 (x*x), Just x) | k<-[0..fieldPrimeF16-1], let x = F16 (fromIntegral k) ]
 
-fieldSqrt1 :: F16 -> Maybe F16
-fieldSqrt1 (F16 k) = sqrtTable ! k
-
-data Sqrt a 
-  = NoRoot
-  | DblRoot  !a
-  | TwoRoots !a !a 
-  deriving (Eq,Show)
-
-sqrtToList :: Sqrt a -> [a]
-sqrtToList  NoRoot        = []
-sqrtToList (DblRoot  x  ) = [x]
-sqrtToList (TwoRoots x y) = [x,y]
-
-fieldSqrt :: F16 -> Sqrt F16
-fieldSqrt x = case fieldSqrt1 x of
-  Nothing -> NoRoot
-  Just y  -> if y == 0 
-    then DblRoot  y 
-    else TwoRoots y (-y)
+fieldSqrtF16 :: F16 -> Maybe F16
+fieldSqrtF16 (F16 k) = sqrtTable ! k
 
 --------------------------------------------------------------------------------
 
 -- | prime field with @p = 65537 = 2^16 + 1@
-newtype F16 = F16 Word64 deriving (Eq,Show)
+newtype F16 = F16 Word64 deriving (Eq,Ord,Show)
 
 unF16 :: F16 -> Word64
 unF16 (F16 x) = x
@@ -75,13 +77,13 @@ instance Fractional F16 where
   (/)   (F16 x) (F16 y) = F16 $ Raw.div 65537 x y
   fromRational x = fromInteger (numerator x) / fromInteger (denominator x)  
 
-isZero :: F16 -> Bool
-isZero (F16 x) = (x == 0)
+isZeroF16 :: F16 -> Bool
+isZeroF16 (F16 x) = (x == 0)
 
-pow :: F16 -> Integer -> F16
-pow (F16 x) n = F16 $ Raw.pow' 65537 x n
+powF16 :: F16 -> Integer -> F16
+powF16 (F16 x) n = F16 $ Raw.pow' 65537 x n
 
-pow_ :: F16 -> Int -> F16
-pow_ (F16 x) n = F16 $ Raw.pow 65537 x (fromIntegral n)
+powF16_ :: F16 -> Int -> F16
+powF16_ (F16 x) n = F16 $ Raw.pow 65537 x (fromIntegral n)
 
 -------------------------------------------------------------------------------

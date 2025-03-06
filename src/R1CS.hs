@@ -11,6 +11,7 @@ module R1CS
   , module R1CS.Test.Spec
   , module R1CS.Test.Runner
   , module R1CS.Compile
+  , module R1CS.Algebra.Fields
   , module R1CS.Misc      
   )
   where
@@ -34,5 +35,7 @@ import R1CS.Test.Spec
 import R1CS.Test.Runner
 import R1CS.Compile
 import R1CS.Misc ( Verbosity(..) , Prime , Name , Bit(..) )
+
+import R1CS.Algebra.Fields ( FieldChoice(..) , runWithField )
 
 --------------------------------------------------------------------------------

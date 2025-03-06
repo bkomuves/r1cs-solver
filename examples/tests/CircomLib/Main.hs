@@ -6,7 +6,7 @@ module CircomLib.Main where
 
 --------------------------------------------------------------------------------
 
-import R1CS.Misc ( Verbosity(..) )
+import R1CS -- .Misc ( Verbosity(..) )
 
 import qualified R1CS.Test.Spec as Spec
 
@@ -19,13 +19,13 @@ import qualified CircomLib.Lib.MultiMux             as MultiMux
 --------------------------------------------------------------------------------
 
 testCircomLib :: IO ()
-testCircomLib = testCircomLib' Silent
+testCircomLib = testCircomLib' Field20 Silent
 
-testCircomLib' :: Verbosity -> IO ()
-testCircomLib' verbosity = do
+testCircomLib' :: FieldChoice -> Verbosity -> IO ()
+testCircomLib' field verbosity = runWithField field $ \pxy ->  do
   
-  let runSpec     what = Spec.testSemantics     what verbosity
-  let runSpecMany what = Spec.testSemanticsMany what verbosity
+  let runSpec     what = Spec.testSemantics     pxy what verbosity
+  let runSpecMany what = Spec.testSemanticsMany pxy what verbosity
   
   runSpec     Switcher.spec
   runSpec     ForceEqualIfEnabled.spec

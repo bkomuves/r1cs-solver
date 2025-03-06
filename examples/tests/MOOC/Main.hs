@@ -32,11 +32,11 @@ import qualified MOOC.Lab.FloatAdd            as FloatAdd
 --------------------------------------------------------------------------------
 
 testLab :: IO ()
-testLab = testLab' Silent
+testLab = testLab' Field20 Silent
 
-testLab' :: Verbosity -> IO ()
-testLab' verbosity = do
-  let runSpec what = Spec.testSemantics what verbosity
+testLab' :: FieldChoice -> Verbosity -> IO ()
+testLab' fld verbosity = runWithField fld $ \pxy -> do
+  let runSpec what = Spec.testSemantics pxy what verbosity
   runSpec Num2Bits.spec             
   runSpec LessThan.spec             
   runSpec CheckBitLength.spec       
@@ -49,11 +49,11 @@ testLab' verbosity = do
 
 -- | testing @FloatAdd@ is very slow, so we do it separately
 testFloatAdd :: IO ()
-testFloatAdd = testFloatAdd' Info -- Silent
+testFloatAdd = testFloatAdd' Field20 Info -- Silent
 
-testFloatAdd' :: Verbosity -> IO ()
-testFloatAdd' verbosity = do
-  let runSpecMany what = Spec.testSemanticsMany what verbosity
+testFloatAdd' :: FieldChoice -> Verbosity -> IO ()
+testFloatAdd' fld verbosity = runWithField fld $ \pxy -> do
+  let runSpecMany what = Spec.testSemanticsMany pxy what verbosity
   runSpecMany FloatAdd.specs
 
 --------------------------------------------------------------------------------

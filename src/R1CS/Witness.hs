@@ -88,14 +88,14 @@ instance Ord var => Semigroup (VarSet var) where
 
 instance Ord var => Monoid (VarSet var) where
   mempty  = emptyVarSet
-  mappend = appendVarSet
+  mappend = (<>) 
 
 instance (Ord var, Show var, Eq coeff) => Semigroup (Mapping var coeff) where
   (<>) = appendMapping
 
 instance (Ord var, Show var, Eq coeff) => Monoid (Mapping var coeff) where
   mempty  = emptyMapping
-  mappend = appendMapping
+  mappend = (<>)
 
 --------------------------------------------------------------------------------
 -- ** Creating mappings

@@ -55,14 +55,14 @@ spec = TestSpec circomFile mainComponent inputs outputs semantics testCases
 --------------------------------------------------------------------------------
 -- test the honest prover, too
 
-testHonestProver :: Verbosity -> IO ()
-testHonestProver verbosity = do
+testHonestProver :: FieldChoice -> Verbosity -> IO ()
+testHonestProver fld verbosity = runWithField fld $ \pxy -> do
   putStrLn $ "now, let's test the honest prover:"
   circuitfiles <- compileCircomCircuit verbosity circomFile (Just mainComponent)
   forM_ testCases $ \inp -> do
     let hsinputs = HsInputs $ Map.singleton "inp" (HsInput inp)
     witnessfiles <- computeWitness verbosity circuitfiles hsinputs
-    witness <- loadWitness verbosity circuitfiles witnessfiles
+    witness <- loadWitness pxy verbosity circuitfiles witnessfiles
     -- print witness
     let Witness table = witness
     let expected = semantics inp

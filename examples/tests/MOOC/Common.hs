@@ -10,7 +10,8 @@ module MOOC.Common
 --  , compileLabCircuit
 --  , runExample_
 --  , printTheConstraints
-  , Verbosity (..)
+  , Verbosity(..)
+  , FieldChoice(..) , runWithField
   ) 
   where
 
