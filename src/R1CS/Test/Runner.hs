@@ -165,9 +165,12 @@ runSemanticTests pxy verbosity symConstr makeInputOutputPair testcases = do
     let (inputs,expected_) = makeInputOutputPair testcase
     let expected = fmap (mapCoeff fromInteger) expected_
     let ini = fromMapping (fromInputs inputs)
-    sols <- solver pxy verbosity symConstr (Map.map fromInteger ini)
+    sols <- nubSort <$> solver pxy verbosity symConstr (Map.map fromInteger ini)
     let n = length sols
-    when (verbosity >= Info) $ when (n > 1) $ putStr ("warning: multiple witness solutions! n = " ++ show n ++ "... ")
+    when (verbosity >= Info) $ when (n > 1) $ do 
+      putStr ("warning: multiple witness solutions! n = " ++ show n ++ "... ")
+      when (verbosity >= DebugPlus) $ do
+        print sols
     let res = analyzeSolutionSet expected sols
     when (verbosity >= Info) $ case (sols, expected) of
       ([] , ShouldFail) -> putStrLn "Passed (no solutions are found, but none is expected)"

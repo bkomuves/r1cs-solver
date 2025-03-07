@@ -39,7 +39,7 @@ toFieldConstraints (Constraints _ list) = Constraints (fieldPrime (Proxy @f))
 -- (where the constant term is encoded using a special variable)
 newtype LinComb var coeff
   = LinComb (Map var coeff)
-  deriving (Eq,Show)
+  deriving (Eq,Ord,Show)
 
 -- | The R1CS constraint @a*b - c = 0@
 data R1CS var coeff = R1CS 
@@ -47,7 +47,7 @@ data R1CS var coeff = R1CS
   , _b :: !(LinComb var coeff)
   , _c :: !(LinComb var coeff)
   }
-  deriving (Eq,Show)
+  deriving (Eq,Ord,Show)
 
 data Constraints var coeff = Constraints
   { _prime1       :: !Prime
@@ -116,7 +116,7 @@ data R1CS' var coeff = R1CS'
   , _b' :: !(LinComb' var coeff)
   , _c' :: !(LinComb' var coeff)
   }
-  deriving (Eq,Show)
+  deriving (Eq,Ord,Show)
 
 toR1CS' :: Num coeff => R1CS VarIdx coeff -> R1CS' VarIdx coeff
 toR1CS' (R1CS a b c) = R1CS' 

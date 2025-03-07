@@ -113,11 +113,11 @@ compileCircomCircuit' extcfg verbosity circomFile0 mbMain = case mbMain of
     let tmpCircomFile = mangleFileName uid circomFile
     writeFile tmpCircomFile text'
 
-    -- compile
+    -- compile, then delete the temp file
     circuitfiles <- withFinalizer (removeFile tmpCircomFile) $ do
       compileCircomCircuit'' extcfg verbosity tmpCircomFile
 
-    -- delete the temp file and rename everything back to normal
+    -- rename everything back to normal
     removeFile tmpCircomFile
     renameDemangleCircuitFiles uid circuitfiles
 

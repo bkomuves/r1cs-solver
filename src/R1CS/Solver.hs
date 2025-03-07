@@ -321,7 +321,7 @@ linearSubsRestrictions (x,lc) table =
 
 newtype Substitution var coeff 
   = Substitution (Map var (RHS var coeff))
-  deriving Show
+  deriving (Eq,Ord,Show)
 
 restrictionToSubstitution :: Restrictions var coeff -> Substitution var coeff
 restrictionToSubstitution restr = Substitution (Map.map f restr) where
@@ -332,7 +332,7 @@ restrictionToSubstitution restr = Substitution (Map.map f restr) where
 data RHS var coeff
   = Value     coeff                  -- ^ a concrete value
   | LinearExp (LinComb' var coeff)   -- ^ a linear expression
-  deriving Show
+  deriving (Eq,Ord,Show)
 
 rhsIsValue :: RHS var coeff -> Bool
 rhsIsValue (Value y) = True
@@ -366,7 +366,7 @@ data Solution var coeff
   = UniqueSolution   !(Map var coeff)
   | HasFreeVariables !(Set var) !(Substitution var coeff)
   | CouldntSolve     !(Partial var coeff)
-  deriving Show
+  deriving (Eq,Ord,Show)
 
 type Solutions var coeff = [Solution var coeff]
 
@@ -451,7 +451,7 @@ data Partial var coeff = Partial
   { _restrictions :: Restrictions var coeff
   , _pconstraints :: [R1CS' var coeff]
   }
-  deriving Show
+  deriving (Eq,Ord,Show)
 
 instance MapVar Partial where
   mapVar f (Partial restr constr) = Partial 

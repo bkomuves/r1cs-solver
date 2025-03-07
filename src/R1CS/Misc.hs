@@ -5,6 +5,7 @@ module R1CS.Misc where
 --------------------------------------------------------------------------------
 
 import Data.List
+import Data.Ord
 
 import Data.Map (Map) ; import qualified Data.Map.Strict as Map
 import Data.Set (Set) ; import qualified Data.Set        as Set 
@@ -110,4 +111,7 @@ replaceMVar !mvar !x = do
   putMVar mvar x
 
 --------------------------------------------------------------------------------
+-- * Nub
 
+nubSort :: (Eq a, Ord a) => [a] -> [a]
+nubSort = map head . group . sort
