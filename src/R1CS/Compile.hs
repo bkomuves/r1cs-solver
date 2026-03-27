@@ -150,8 +150,12 @@ compileCircomCircuit'' extcfg verbosity circomFile0 = do
     , circomFile
     ] 
 -}
+
+  -- remark: 
+  -- circom --O2 can introduce R1CS coefficients which are hard ot map to small field elements
+
   let devnull = if (verbosity <= Info) then " >/dev/null" else ""
-  let cmd1 = circomExe ++ " --r1cs --sym --wasm --O2 --output " ++ quote tgtDir ++ " " ++ quote circomFile ++ devnull
+  let cmd1 = circomExe ++ " --r1cs --sym --wasm --O1 --output " ++ quote tgtDir ++ " " ++ quote circomFile ++ devnull
   when (verbosity >= Verbose) $ putStrLn cmd1
   exit1 <- system cmd1
   unless (exit1 == ExitSuccess) $ fail $ "circom exited with " ++ show exit1
